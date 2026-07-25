@@ -1,0 +1,19 @@
+{
+  "name": "devflow-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "dev:web": "pnpm --filter @devflow/web dev",
+    "dev:api": "pnpm --filter @devflow/api dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.0",
+  "engines": { "node": ">=20" },
+  "private": true
+}

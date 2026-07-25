@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GitHubResource {
+  commit
+  issue
+  prs
+  runs
+  notifications
+}
+
+model User {
+  id String @id @default(uuid()) 
+  githubId String @unique
+  login String
+  avatarUrl String
+  accessTokenEnc Bytes
+  tokenIv Bytes
+  tokenRevoked Boolean @default(false)
+  datetimeRevoked DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trackedRepos TrackedRepo[] // "one user has many tracked repos"
+  briefs Brief[]
+  cacheRows GithubCache[]
+}
+
+model Repo {
+  id String @id @default(uuid())
+  githubId String @unique
+  fullName String
+  private Boolean
+  defaultBranch String
+
+  trackedBy TrackedRepo[]
+  caches GithubCache[]
+}
+
+model TrackedRepo {
+  userId String
+  repoId String
+  addedAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, repoId])
+}
+
+model GithubCache {
+  id String @id @default(uuid())
+  repoId String? 
+  userId String? 
+  resource GitHubResource
+  etag String
+  payload Json
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime?
+
+  repo Repo? @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, repoId, resource])
+  
+}
+
+model Brief {
+  id String @id @default(uuid())
+  userId String 
+  windowStart DateTime
+  windowEnd DateTime
+  content Json
+  model String
+  generatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, windowEnd])
+  
+}
